@@ -8,6 +8,5 @@ class Agent {
     this.col = col;
     this.cell = Cells[row][col];
     this.queueOfCells = new Queue();
-    this.queueOfCells.enqueue(this.cell);
   }
 }

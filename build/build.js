@@ -4,7 +4,6 @@ var Agent = (function () {
         this.col = col;
         this.cell = Cells[row][col];
         this.queueOfCells = new Queue();
-        this.queueOfCells.enqueue(this.cell);
     }
     return Agent;
 }());
@@ -32,7 +31,7 @@ var Cell = (function () {
             }
             else {
                 if (this.visited) {
-                    fill(0, 0, 255, 60);
+                    fill(0, 0, 255, 90);
                 }
                 else {
                     fill(255);
@@ -89,6 +88,9 @@ var Queue = (function () {
     Queue.prototype.size = function () {
         return this.items.length;
     };
+    Queue.prototype.clear = function () {
+        this.items = [];
+    };
     return Queue;
 }());
 var Target = (function () {
@@ -110,55 +112,29 @@ var agents = [];
 var targets = [];
 var squareLength;
 var walls = [];
+var agentCount;
+var targetCount;
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    canvasWidth = windowWidth;
-    canvasHeight = windowHeight;
-    squareLength = 40;
-    gridCol = floor(canvasWidth / squareLength) - 1;
-    gridRow = floor(canvasHeight / squareLength) - 1;
-    console.log(gridCol, gridRow);
-    for (var i = 0; i < gridRow; i++) {
-        Cells[i] = [];
-        for (var j = 0; j < gridCol; j++) {
-            Cells[i][j] = new Cell(i, j);
-        }
-    }
-    agents.push(new Agent(1, 1));
-    agents.push(new Agent(4, 30));
-    agents.push(new Agent(4, 20));
-    targets.push(new Target(8, 14));
-    targets.push(new Target(8, 20));
-    for (var i = 0; i < gridRow; i++) {
-        walls[i] = [];
-        for (var j = 0; j < gridCol; j++) {
-            walls[i][j] = Math.random() > 0.7;
-            console.log(walls[i][j]);
-        }
-    }
+    setGlobalVariables();
     createCanvas(canvasWidth, canvasWidth);
-    for (var i = 0; i < gridRow; i++) {
-        for (var j = 0; j < gridCol; j++) {
-            for (var k = 0; k < agents.length; k++) {
-                if (agents[k].row === i && agents[k].col === j) {
-                    Cells[i][j].isAgentHere = true;
+    var startButton = createButton("Start");
+    startButton.position(50, gridRow * squareLength);
+    startButton.mousePressed(function () {
+        for (var i = 0; i < gridRow; i++) {
+            for (var j = 0; j < gridCol; j++) {
+                Cells[i][j].visited = false;
+                Cells[i][j].isThisCellPartOfPath = false;
+                for (var k = 0; k < agents.length; k++) {
+                    agents[k].queueOfCells.clear();
+                    agents[k].queueOfCells.enqueue(agents[k].cell);
                 }
-            }
-            for (var k = 0; k < targets.length; k++) {
-                if (targets[k].row === i && targets[k].col === j) {
-                    Cells[i][j].isTargetHere = true;
-                }
-            }
-            if (!Cells[i][j].isTargetHere && !Cells[i][j].isAgentHere && walls[i][j]) {
-                Cells[i][j].isWallHere = true;
             }
         }
-    }
-    squareLength = floor(canvasWidth / gridCol);
+    });
 }
 function draw() {
     background(255);
-    frameRate(2);
+    frameRate(8);
     for (var i = 0; i < gridRow; i++) {
         for (var j = 0; j < gridCol; j++) {
             push();
@@ -173,7 +149,78 @@ function draw() {
         doBFSNextLayer(agents[i]);
     }
 }
-function mouseClicked() { }
+function setGlobalVariables() {
+    canvasWidth = windowWidth;
+    canvasHeight = windowHeight;
+    squareLength = 20;
+    agentCount = 2;
+    targetCount = 10;
+    gridCol = floor(canvasWidth / squareLength) - 1;
+    gridRow = floor(canvasHeight / squareLength) - 1;
+    console.log(gridCol, gridRow);
+    for (var i_1 = 0; i_1 < gridRow; i_1++) {
+        Cells[i_1] = [];
+        for (var j = 0; j < gridCol; j++) {
+            Cells[i_1][j] = new Cell(i_1, j);
+        }
+    }
+    var i = 0;
+    while (i < agentCount) {
+        var row = floor(random(0, gridRow));
+        var col = floor(random(0, gridCol));
+        var isContain = false;
+        for (var j = 0; j < agents.length; j++) {
+            if (agents[j].row == row && agents[j].col == col) {
+                isContain = true;
+                break;
+            }
+        }
+        if (!isContain) {
+            agents.push(new Agent(row, col));
+            i++;
+        }
+    }
+    i = 0;
+    while (i < targetCount) {
+        var row = floor(random(0, gridRow));
+        var col = floor(random(0, gridCol));
+        var isContain = false;
+        for (var j = 0; j < targets.length; j++) {
+            if (targets[j].row == row && targets[j].col == col) {
+                isContain = true;
+                break;
+            }
+        }
+        if (!isContain) {
+            targets.push(new Target(row, col));
+            i++;
+        }
+    }
+    for (var i_2 = 0; i_2 < gridRow; i_2++) {
+        walls[i_2] = [];
+        for (var j = 0; j < gridCol; j++) {
+            walls[i_2][j] = Math.random() > 0.7;
+        }
+    }
+    for (var i_3 = 0; i_3 < gridRow; i_3++) {
+        for (var j = 0; j < gridCol; j++) {
+            for (var k = 0; k < agents.length; k++) {
+                if (agents[k].row === i_3 && agents[k].col === j) {
+                    Cells[i_3][j].isAgentHere = true;
+                }
+            }
+            for (var k = 0; k < targets.length; k++) {
+                if (targets[k].row === i_3 && targets[k].col === j) {
+                    Cells[i_3][j].isTargetHere = true;
+                }
+            }
+            if (!Cells[i_3][j].isTargetHere && !Cells[i_3][j].isAgentHere && walls[i_3][j]) {
+                Cells[i_3][j].isWallHere = true;
+            }
+        }
+    }
+    squareLength = floor(canvasWidth / gridCol);
+}
 function getUnvisitedNeighbors(cell) {
     var neighbors = [];
     var row = cell.row;
@@ -210,9 +257,9 @@ function doBFSNextLayer(agent) {
         var expandNode = nodeInThisLayer[i];
         if (!expandNode.visited) {
             var neighbors = getUnvisitedNeighbors(expandNode);
-            for (var i_1 = 0; i_1 < neighbors.length; i_1++) {
-                neighbors[i_1].previousCell = expandNode;
-                agent.queueOfCells.enqueue(neighbors[i_1]);
+            for (var i_4 = 0; i_4 < neighbors.length; i_4++) {
+                neighbors[i_4].previousCell = expandNode;
+                agent.queueOfCells.enqueue(neighbors[i_4]);
             }
             expandNode.visited = true;
             if (expandNode.isTargetHere) {

@@ -25,4 +25,7 @@ class Queue {
   size() {
     return this.items.length;
   }
+  clear() {
+    this.items = [];
+  }
 }

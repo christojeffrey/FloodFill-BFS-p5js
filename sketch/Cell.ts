@@ -33,7 +33,7 @@ class Cell {
       } else {
         if (this.visited) {
           // blue
-          fill(0, 0, 255, 60);
+          fill(0, 0, 255, 90);
         } else {
           fill(255);
         }
