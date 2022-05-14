@@ -1,0 +1,11 @@
+bot discord buat ngedeteksi sad people 
+knapsack to optimize each day
+brute force game 24 lol
+tradebot?
+path finding, di vs in sama ai?
+maze solver vs ai pake p5js?
+connect 4 solver?
+multiagent a star?
+multiagent airline traffic control?
+multiagent search and rescue team?
+multiagent floodfill? pake p5js? trus followed by a star?
