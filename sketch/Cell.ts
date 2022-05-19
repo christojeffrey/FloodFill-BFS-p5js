@@ -1,11 +1,13 @@
 class Cell {
+  // buat nentuin how the cell will be drawn
   visited: boolean;
-  isAgentHere: boolean;
-  isTargetHere: boolean;
   isWallHere: boolean;
+  isPartOfPath: boolean;
 
-  // variable untuk reconstruct
-  isThisCellPartOfPath: boolean;
+  //buat overlay kotak diatas cell
+  isTargetHere: boolean;
+  isAgentHere: boolean;
+
   previousCell: Cell;
 
   constructor(public row: number, public col: number) {
@@ -15,31 +17,31 @@ class Cell {
     this.isAgentHere = false;
     this.isTargetHere = false;
     this.isWallHere = false;
-    this.isThisCellPartOfPath = false;
+    this.isPartOfPath = false;
     this.previousCell = null;
   }
   // draw
   draw() {
     push();
-    // translate(0, 0);
-    // draw a shape with fill color black
-    // fill(0);
     if (this.isWallHere) {
+      // black
       fill(0);
     } else {
-      if (this.isThisCellPartOfPath) {
-        // purple
-        fill(255, 0, 255, 90);
+      if (this.isPartOfPath) {
+        // yellow
+        fill(255, 255, 0);
       } else {
         if (this.visited) {
           // blue
           fill(0, 0, 255, 90);
         } else {
+          // white
           fill(255);
         }
       }
     }
     square(0, 0, squareLength);
+    pop();
 
     if (this.isAgentHere) {
       // console.log("agent", this.x, this.y);
@@ -49,7 +51,6 @@ class Cell {
     if (this.isTargetHere) {
       this.highlightAsTarget();
     }
-    pop();
   }
   // highlightAsAgent
   highlightAsAgent() {
@@ -67,5 +68,32 @@ class Cell {
     fill(255, 0, 0);
     square(0, 0, squareLength);
     pop();
+  }
+
+  getUnvisitedNeighbors() {
+    let neighbors = [];
+    let row = this.row;
+    let col = this.col;
+    if (row > 0) {
+      if (!Cells[row - 1][col].visited && !Cells[row - 1][col].isWallHere) {
+        neighbors.push(Cells[row - 1][col]);
+      }
+    }
+    if (row < gridRow - 1) {
+      if (!Cells[row + 1][col].visited && !Cells[row + 1][col].isWallHere) {
+        neighbors.push(Cells[row + 1][col]);
+      }
+    }
+    if (col > 0) {
+      if (!Cells[row][col - 1].visited && !Cells[row][col - 1].isWallHere) {
+        neighbors.push(Cells[row][col - 1]);
+      }
+    }
+    if (col < gridCol - 1) {
+      if (!Cells[row][col + 1].visited && !Cells[row][col + 1].isWallHere) {
+        neighbors.push(Cells[row][col + 1]);
+      }
+    }
+    return neighbors;
   }
 }

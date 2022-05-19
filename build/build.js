@@ -2,9 +2,33 @@ var Agent = (function () {
     function Agent(row, col) {
         this.row = row;
         this.col = col;
-        this.cell = Cells[row][col];
         this.queueOfCells = new Queue();
     }
+    Agent.prototype.doBFSNextLayer = function () {
+        var nodeInThisLayer = [];
+        while (this.queueOfCells.size() > 0) {
+            nodeInThisLayer.push(this.queueOfCells.dequeue());
+        }
+        for (var i = 0; i < nodeInThisLayer.length; i++) {
+            var expandNode = nodeInThisLayer[i];
+            if (!expandNode.visited) {
+                expandNode.visited = true;
+                var neighbors = expandNode.getUnvisitedNeighbors();
+                for (var i_1 = 0; i_1 < neighbors.length; i_1++) {
+                    neighbors[i_1].previousCell = expandNode;
+                    this.queueOfCells.enqueue(neighbors[i_1]);
+                }
+                if (expandNode.isTargetHere) {
+                    console.log("found target");
+                    var current = expandNode;
+                    while (current.previousCell) {
+                        current.isPartOfPath = true;
+                        current = current.previousCell;
+                    }
+                }
+            }
+        }
+    };
     return Agent;
 }());
 var Cell = (function () {
@@ -17,7 +41,7 @@ var Cell = (function () {
         this.isAgentHere = false;
         this.isTargetHere = false;
         this.isWallHere = false;
-        this.isThisCellPartOfPath = false;
+        this.isPartOfPath = false;
         this.previousCell = null;
     }
     Cell.prototype.draw = function () {
@@ -26,8 +50,8 @@ var Cell = (function () {
             fill(0);
         }
         else {
-            if (this.isThisCellPartOfPath) {
-                fill(255, 0, 255, 90);
+            if (this.isPartOfPath) {
+                fill(255, 255, 0);
             }
             else {
                 if (this.visited) {
@@ -39,13 +63,13 @@ var Cell = (function () {
             }
         }
         square(0, 0, squareLength);
+        pop();
         if (this.isAgentHere) {
             this.highlightAsAgent();
         }
         if (this.isTargetHere) {
             this.highlightAsTarget();
         }
-        pop();
     };
     Cell.prototype.highlightAsAgent = function () {
         push();
@@ -58,6 +82,32 @@ var Cell = (function () {
         fill(255, 0, 0);
         square(0, 0, squareLength);
         pop();
+    };
+    Cell.prototype.getUnvisitedNeighbors = function () {
+        var neighbors = [];
+        var row = this.row;
+        var col = this.col;
+        if (row > 0) {
+            if (!Cells[row - 1][col].visited && !Cells[row - 1][col].isWallHere) {
+                neighbors.push(Cells[row - 1][col]);
+            }
+        }
+        if (row < gridRow - 1) {
+            if (!Cells[row + 1][col].visited && !Cells[row + 1][col].isWallHere) {
+                neighbors.push(Cells[row + 1][col]);
+            }
+        }
+        if (col > 0) {
+            if (!Cells[row][col - 1].visited && !Cells[row][col - 1].isWallHere) {
+                neighbors.push(Cells[row][col - 1]);
+            }
+        }
+        if (col < gridCol - 1) {
+            if (!Cells[row][col + 1].visited && !Cells[row][col + 1].isWallHere) {
+                neighbors.push(Cells[row][col + 1]);
+            }
+        }
+        return neighbors;
     };
     return Cell;
 }());
@@ -75,12 +125,6 @@ var Queue = (function () {
         else {
             return this.items.shift();
         }
-    };
-    Queue.prototype.peek = function () {
-        if (this.isEmpty()) {
-            return "Queue is empty";
-        }
-        return this.items[0];
     };
     Queue.prototype.isEmpty = function () {
         return this.items.length === 0;
@@ -114,54 +158,19 @@ var squareLength;
 var walls = [];
 var agentCount;
 var targetCount;
-function setup() {
-    setGlobalVariables();
-    createCanvas(canvasWidth, canvasWidth);
-    var startButton = createButton("Start");
-    startButton.position(50, gridRow * squareLength);
-    startButton.mousePressed(function () {
-        for (var i = 0; i < gridRow; i++) {
-            for (var j = 0; j < gridCol; j++) {
-                Cells[i][j].visited = false;
-                Cells[i][j].isThisCellPartOfPath = false;
-                for (var k = 0; k < agents.length; k++) {
-                    agents[k].queueOfCells.clear();
-                    agents[k].queueOfCells.enqueue(agents[k].cell);
-                }
-            }
-        }
-    });
-}
-function draw() {
-    background(255);
-    frameRate(8);
-    for (var i = 0; i < gridRow; i++) {
-        for (var j = 0; j < gridCol; j++) {
-            push();
-            var iLoc = i * squareLength;
-            var jLoc = j * squareLength;
-            translate(jLoc, iLoc);
-            Cells[i][j].draw();
-            pop();
-        }
-    }
-    for (var i = 0; i < agents.length; i++) {
-        doBFSNextLayer(agents[i]);
-    }
-}
 function setGlobalVariables() {
     canvasWidth = windowWidth;
     canvasHeight = windowHeight;
-    squareLength = 20;
-    agentCount = 2;
-    targetCount = 10;
-    gridCol = floor(canvasWidth / squareLength) - 1;
-    gridRow = floor(canvasHeight / squareLength) - 1;
+    squareLength = 50;
+    agentCount = 1;
+    targetCount = 1;
+    gridCol = floor(canvasWidth / squareLength);
+    gridRow = floor(canvasHeight / squareLength);
     console.log(gridCol, gridRow);
-    for (var i_1 = 0; i_1 < gridRow; i_1++) {
-        Cells[i_1] = [];
+    for (var i_2 = 0; i_2 < gridRow; i_2++) {
+        Cells[i_2] = [];
         for (var j = 0; j < gridCol; j++) {
-            Cells[i_1][j] = new Cell(i_1, j);
+            Cells[i_2][j] = new Cell(i_2, j);
         }
     }
     var i = 0;
@@ -196,81 +205,64 @@ function setGlobalVariables() {
             i++;
         }
     }
-    for (var i_2 = 0; i_2 < gridRow; i_2++) {
-        walls[i_2] = [];
+    for (var i_3 = 0; i_3 < gridRow; i_3++) {
+        walls[i_3] = [];
         for (var j = 0; j < gridCol; j++) {
-            walls[i_2][j] = Math.random() > 0.7;
+            var wallPercentage = 0.3;
+            walls[i_3][j] = !(Math.random() > wallPercentage);
         }
     }
-    for (var i_3 = 0; i_3 < gridRow; i_3++) {
+    for (var i_4 = 0; i_4 < gridRow; i_4++) {
         for (var j = 0; j < gridCol; j++) {
             for (var k = 0; k < agents.length; k++) {
-                if (agents[k].row === i_3 && agents[k].col === j) {
-                    Cells[i_3][j].isAgentHere = true;
+                if (agents[k].row === i_4 && agents[k].col === j) {
+                    Cells[i_4][j].isAgentHere = true;
                 }
             }
             for (var k = 0; k < targets.length; k++) {
-                if (targets[k].row === i_3 && targets[k].col === j) {
-                    Cells[i_3][j].isTargetHere = true;
+                if (targets[k].row === i_4 && targets[k].col === j) {
+                    Cells[i_4][j].isTargetHere = true;
                 }
             }
-            if (!Cells[i_3][j].isTargetHere && !Cells[i_3][j].isAgentHere && walls[i_3][j]) {
-                Cells[i_3][j].isWallHere = true;
+            if (!Cells[i_4][j].isTargetHere && !Cells[i_4][j].isAgentHere && walls[i_4][j]) {
+                Cells[i_4][j].isWallHere = true;
             }
         }
     }
-    squareLength = floor(canvasWidth / gridCol);
 }
-function getUnvisitedNeighbors(cell) {
-    var neighbors = [];
-    var row = cell.row;
-    var col = cell.col;
-    if (row > 0) {
-        if (!Cells[row - 1][col].visited && !Cells[row - 1][col].isWallHere) {
-            neighbors.push(Cells[row - 1][col]);
-        }
-    }
-    if (row < gridRow - 1) {
-        if (!Cells[row + 1][col].visited && !Cells[row + 1][col].isWallHere) {
-            neighbors.push(Cells[row + 1][col]);
-        }
-    }
-    if (col > 0) {
-        if (!Cells[row][col - 1].visited && !Cells[row][col - 1].isWallHere) {
-            neighbors.push(Cells[row][col - 1]);
-        }
-    }
-    if (col < gridCol - 1) {
-        if (!Cells[row][col + 1].visited && !Cells[row][col + 1].isWallHere) {
-            neighbors.push(Cells[row][col + 1]);
-        }
-    }
-    return neighbors;
-}
-function doBFSNextLayer(agent) {
-    var nodeInThisLayer = [];
-    while (agent.queueOfCells.size() > 0) {
-        nodeInThisLayer.push(agent.queueOfCells.dequeue());
-    }
-    console.log(nodeInThisLayer);
-    for (var i = 0; i < nodeInThisLayer.length; i++) {
-        var expandNode = nodeInThisLayer[i];
-        if (!expandNode.visited) {
-            var neighbors = getUnvisitedNeighbors(expandNode);
-            for (var i_4 = 0; i_4 < neighbors.length; i_4++) {
-                neighbors[i_4].previousCell = expandNode;
-                agent.queueOfCells.enqueue(neighbors[i_4]);
-            }
-            expandNode.visited = true;
-            if (expandNode.isTargetHere) {
-                console.log("found target");
-                var current = expandNode;
-                while (current.previousCell) {
-                    current.isThisCellPartOfPath = true;
-                    current = current.previousCell;
+function setup() {
+    setGlobalVariables();
+    createCanvas(canvasWidth, canvasWidth);
+    var startButton = createButton("Start");
+    startButton.position(50, gridRow * squareLength);
+    startButton.mousePressed(function () {
+        for (var i = 0; i < gridRow; i++) {
+            for (var j = 0; j < gridCol; j++) {
+                Cells[i][j].visited = false;
+                Cells[i][j].isPartOfPath = false;
+                for (var k = 0; k < agents.length; k++) {
+                    agents[k].queueOfCells.clear();
+                    agents[k].queueOfCells.enqueue(Cells[agents[k].row][agents[k].col]);
                 }
             }
         }
+    });
+    frameRate(10);
+}
+function draw() {
+    background(255);
+    for (var i = 0; i < gridRow; i++) {
+        for (var j = 0; j < gridCol; j++) {
+            push();
+            var iLoc = i * squareLength;
+            var jLoc = j * squareLength;
+            translate(jLoc, iLoc);
+            Cells[i][j].draw();
+            pop();
+        }
+    }
+    for (var i = 0; i < agents.length; i++) {
+        agents[i].doBFSNextLayer();
     }
 }
 //# sourceMappingURL=build.js.map
