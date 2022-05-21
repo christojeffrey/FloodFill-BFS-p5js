@@ -15,9 +15,9 @@ let targetCount: number;
 function setGlobalVariables() {
   canvasWidth = windowWidth;
   canvasHeight = windowHeight;
-  squareLength = 15;
-  agentCount = 7;
-  targetCount = 15;
+  squareLength = 75;
+  agentCount = 2;
+  targetCount = 5;
   gridCol = floor(canvasWidth / squareLength);
   gridRow = floor(canvasHeight / squareLength);
   console.log(gridCol, gridRow);
@@ -75,8 +75,8 @@ function setGlobalVariables() {
     walls[i] = [];
     for (let j = 0; j < gridCol; j++) {
       // random true or false
-      // 30% wall
-      let wallPercentage = 0.3;
+      // 10% wall
+      let wallPercentage = 0.1;
       walls[i][j] = !(Math.random() > wallPercentage);
     }
   }
@@ -135,7 +135,7 @@ function setup() {
     }
   });
   // framerate
-  frameRate(5);
+  frameRate(10);
 }
 
 /* 

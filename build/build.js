@@ -157,9 +157,9 @@ var targetCount;
 function setGlobalVariables() {
     canvasWidth = windowWidth;
     canvasHeight = windowHeight;
-    squareLength = 15;
-    agentCount = 7;
-    targetCount = 15;
+    squareLength = 75;
+    agentCount = 2;
+    targetCount = 5;
     gridCol = floor(canvasWidth / squareLength);
     gridRow = floor(canvasHeight / squareLength);
     console.log(gridCol, gridRow);
@@ -204,7 +204,7 @@ function setGlobalVariables() {
     for (var i_3 = 0; i_3 < gridRow; i_3++) {
         walls[i_3] = [];
         for (var j = 0; j < gridCol; j++) {
-            var wallPercentage = 0.3;
+            var wallPercentage = 0.1;
             walls[i_3][j] = !(Math.random() > wallPercentage);
         }
     }
@@ -243,7 +243,7 @@ function setup() {
             }
         }
     });
-    frameRate(5);
+    frameRate(10);
 }
 function draw() {
     background(255);
