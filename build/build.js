@@ -11,9 +11,9 @@ var Agent = (function () {
         }
         for (var i = 0; i < nodeInThisLayer.length; i++) {
             var expandNode = nodeInThisLayer[i];
-            if (!expandNode.visited) {
-                expandNode.visited = true;
-                var neighbors = expandNode.getUnvisitedNeighbors();
+            if (!expandNode.isVisited) {
+                expandNode.isVisited = true;
+                var neighbors = expandNode.getUnisVisitedNeighbors();
                 for (var i_1 = 0; i_1 < neighbors.length; i_1++) {
                     neighbors[i_1].previousCell = expandNode;
                     this.queueOfCells.enqueue(neighbors[i_1]);
@@ -22,7 +22,7 @@ var Agent = (function () {
                     console.log("found target");
                     var current = expandNode;
                     while (current.previousCell) {
-                        current.isPartOfPath = true;
+                        current.isPath = true;
                         current = current.previousCell;
                     }
                 }
@@ -35,26 +35,24 @@ var Cell = (function () {
     function Cell(row, col) {
         this.row = row;
         this.col = col;
-        this.row = row;
-        this.col = col;
-        this.visited = false;
+        this.isVisited = false;
         this.isAgentHere = false;
         this.isTargetHere = false;
-        this.isWallHere = false;
-        this.isPartOfPath = false;
+        this.isWall = false;
+        this.isPath = false;
         this.previousCell = null;
     }
     Cell.prototype.draw = function () {
         push();
-        if (this.isWallHere) {
+        if (this.isWall) {
             fill(0);
         }
         else {
-            if (this.isPartOfPath) {
+            if (this.isPath) {
                 fill(255, 255, 0);
             }
             else {
-                if (this.visited) {
+                if (this.isVisited) {
                     fill(0, 0, 255, 90);
                 }
                 else {
@@ -83,27 +81,27 @@ var Cell = (function () {
         square(0, 0, squareLength);
         pop();
     };
-    Cell.prototype.getUnvisitedNeighbors = function () {
+    Cell.prototype.getUnisVisitedNeighbors = function () {
         var neighbors = [];
         var row = this.row;
         var col = this.col;
         if (row > 0) {
-            if (!Cells[row - 1][col].visited && !Cells[row - 1][col].isWallHere) {
+            if (!Cells[row - 1][col].isVisited && !Cells[row - 1][col].isWall) {
                 neighbors.push(Cells[row - 1][col]);
             }
         }
         if (row < gridRow - 1) {
-            if (!Cells[row + 1][col].visited && !Cells[row + 1][col].isWallHere) {
+            if (!Cells[row + 1][col].isVisited && !Cells[row + 1][col].isWall) {
                 neighbors.push(Cells[row + 1][col]);
             }
         }
         if (col > 0) {
-            if (!Cells[row][col - 1].visited && !Cells[row][col - 1].isWallHere) {
+            if (!Cells[row][col - 1].isVisited && !Cells[row][col - 1].isWall) {
                 neighbors.push(Cells[row][col - 1]);
             }
         }
         if (col < gridCol - 1) {
-            if (!Cells[row][col + 1].visited && !Cells[row][col + 1].isWallHere) {
+            if (!Cells[row][col + 1].isVisited && !Cells[row][col + 1].isWall) {
                 neighbors.push(Cells[row][col + 1]);
             }
         }
@@ -141,8 +139,6 @@ var Target = (function () {
     function Target(row, col) {
         this.row = row;
         this.col = col;
-        this.row = row;
-        this.col = col;
     }
     return Target;
 }());
@@ -161,9 +157,9 @@ var targetCount;
 function setGlobalVariables() {
     canvasWidth = windowWidth;
     canvasHeight = windowHeight;
-    squareLength = 50;
-    agentCount = 1;
-    targetCount = 1;
+    squareLength = 15;
+    agentCount = 7;
+    targetCount = 15;
     gridCol = floor(canvasWidth / squareLength);
     gridRow = floor(canvasHeight / squareLength);
     console.log(gridCol, gridRow);
@@ -225,7 +221,7 @@ function setGlobalVariables() {
                 }
             }
             if (!Cells[i_4][j].isTargetHere && !Cells[i_4][j].isAgentHere && walls[i_4][j]) {
-                Cells[i_4][j].isWallHere = true;
+                Cells[i_4][j].isWall = true;
             }
         }
     }
@@ -238,8 +234,8 @@ function setup() {
     startButton.mousePressed(function () {
         for (var i = 0; i < gridRow; i++) {
             for (var j = 0; j < gridCol; j++) {
-                Cells[i][j].visited = false;
-                Cells[i][j].isPartOfPath = false;
+                Cells[i][j].isVisited = false;
+                Cells[i][j].isPath = false;
                 for (var k = 0; k < agents.length; k++) {
                     agents[k].queueOfCells.clear();
                     agents[k].queueOfCells.enqueue(Cells[agents[k].row][agents[k].col]);
@@ -247,7 +243,7 @@ function setup() {
             }
         }
     });
-    frameRate(10);
+    frameRate(5);
 }
 function draw() {
     background(255);

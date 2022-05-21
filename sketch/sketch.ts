@@ -15,9 +15,9 @@ let targetCount: number;
 function setGlobalVariables() {
   canvasWidth = windowWidth;
   canvasHeight = windowHeight;
-  squareLength = 50;
-  agentCount = 1;
-  targetCount = 1;
+  squareLength = 15;
+  agentCount = 7;
+  targetCount = 15;
   gridCol = floor(canvasWidth / squareLength);
   gridRow = floor(canvasHeight / squareLength);
   console.log(gridCol, gridRow);
@@ -99,7 +99,7 @@ function setGlobalVariables() {
       // set walls
       // jika bukan target, bukan agent, dan berdasarkan hasil random, ada wall, maka set wall true
       if (!Cells[i][j].isTargetHere && !Cells[i][j].isAgentHere && walls[i][j]) {
-        Cells[i][j].isWallHere = true;
+        Cells[i][j].isWall = true;
       }
     }
   }
@@ -120,12 +120,12 @@ function setup() {
   let startButton = createButton("Start");
   startButton.position(50, gridRow * squareLength);
   startButton.mousePressed(() => {
-    // set all cells visited to be false
+    // set all cells isVisited to be false
     for (let i = 0; i < gridRow; i++) {
       for (let j = 0; j < gridCol; j++) {
-        Cells[i][j].visited = false;
+        Cells[i][j].isVisited = false;
         // set isCellPartOfPath false
-        Cells[i][j].isPartOfPath = false;
+        Cells[i][j].isPath = false;
         // set queue for all agent
         for (let k = 0; k < agents.length; k++) {
           agents[k].queueOfCells.clear();
@@ -135,7 +135,7 @@ function setup() {
     }
   });
   // framerate
-  frameRate(10);
+  frameRate(5);
 }
 
 /* 
